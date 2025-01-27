@@ -12,7 +12,7 @@ def pregunta_01():
     """
     
     # Ruta de salida
-    output_path = "../files/output/solicitudes_de_credito.csv"
+    output_path = "files/output/solicitudes_de_credito.csv"
     
     # Verificar si la carpeta de salida existe, si no, crearla
     output_dir = os.path.dirname(output_path)
@@ -20,7 +20,7 @@ def pregunta_01():
         os.makedirs(output_dir)
     
     # Cargar los datos del archivo CSV
-    df = pd.read_csv("../files/input/solicitudes_de_credito.csv", sep=";")
+    df = pd.read_csv("files/input/solicitudes_de_credito.csv", sep=";")
     
     # Eliminar registros duplicados
     df = df.drop_duplicates()
