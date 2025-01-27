@@ -10,39 +10,61 @@ def pregunta_01():
 
     El archivo limpio debe escribirse en "files/output/solicitudes_de_credito.csv"
     """
-    
-    # Ruta de salida
+    # Ruta del archivo de entrada y salida
+    input_path = "files/input/solicitudes_de_credito.csv"
     output_path = "files/output/solicitudes_de_credito.csv"
-    
+
     # Verificar si la carpeta de salida existe, si no, crearla
     output_dir = os.path.dirname(output_path)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    
+
     # Cargar los datos del archivo CSV
-    df = pd.read_csv("files/input/solicitudes_de_credito.csv", sep=";")
-    
+    try:
+        df = pd.read_csv(input_path, sep=";")
+    except FileNotFoundError:
+        print(f"El archivo de entrada no existe en la ruta especificada: {input_path}")
+        return
+
     # Eliminar registros duplicados
     df = df.drop_duplicates()
-    
-    # Manejo de datos faltantes
-    # Por ejemplo, podemos eliminar filas con datos faltantes en columnas críticas
-    df = df.dropna(subset=['sexo', 'tipo_de_emprendimiento', 'idea_negocio', 'barrio', 'estrato', 'comuna_ciudadano', 'fecha_de_beneficio', 'monto_del_credito', 'línea_credito'])
-    
-    # Corregir los valores de texto con errores o inconsistencias (por ejemplo, capitalización de 'sexo')
-    df['sexo'] = df['sexo'].str.lower()
-    
-    # Normalizar fechas (convertir a formato estándar)
+
+    # Eliminar filas con valores nulos en columnas críticas
+    columnas_criticas = [
+        'sexo', 'tipo_de_emprendimiento', 'idea_negocio', 'barrio', 
+        'estrato', 'comuna_ciudadano', 'fecha_de_beneficio', 
+        'monto_del_credito', 'línea_credito'
+    ]
+    df = df.dropna(subset=columnas_criticas)
+
+    # Normalizar columnas de texto
+    df['sexo'] = df['sexo'].str.lower().str.strip()
+    df['tipo_de_emprendimiento'] = df['tipo_de_emprendimiento'].str.lower().str.strip()
+    df['idea_negocio'] = df['idea_negocio'].str.lower().str.strip()
+    df['barrio'] = df['barrio'].str.lower().str.strip()
+    df['línea_credito'] = df['línea_credito'].str.lower().str.strip()
+
+    # Convertir la columna 'fecha_de_beneficio' a formato datetime
     df['fecha_de_beneficio'] = pd.to_datetime(df['fecha_de_beneficio'], errors='coerce')
-    
-    # Corregir estrato, por ejemplo, asegurarse de que sean valores numéricos
+
+    # Filtrar filas con fechas inválidas
+    df = df.dropna(subset=['fecha_de_beneficio'])
+
+    # Asegurar que 'estrato' sea numérico
     df['estrato'] = pd.to_numeric(df['estrato'], errors='coerce')
-    
-    # Rellenar o eliminar valores nulos después de la conversión
-    df['estrato'] = df['estrato'].fillna(df['estrato'].median())
-    
+
+    # Eliminar filas con valores nulos en 'estrato' después de la conversión
+    df = df.dropna(subset=['estrato'])
+
+    # Normalizar la columna 'monto_del_credito' eliminando caracteres especiales y convirtiendo a numérico
+    df['monto_del_credito'] = (
+        df['monto_del_credito']
+        .str.replace(r'[^\d]', '', regex=True)  # Eliminar caracteres no numéricos
+        .astype(float)
+    )
+
     # Guardar el archivo limpio en la ubicación indicada
     df.to_csv(output_path, index=False, sep=";")
-    
+    print(f"Archivo limpio guardado en: {output_path}")
 
 pregunta_01()
